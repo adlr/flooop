@@ -1,0 +1,52 @@
+<html>
+<head>
+
+<title>FlooopApplet</title>
+
+
+</head>
+<body text="#000000" link="#0000FF" vlink="#FF0000" alink="#666666" bgcolor="#ffffff">
+<center>
+<table border=3 cellpadding=0 cellspacing=2>
+<tr><td bgcolor="#000000" align=center valign=center><img src="../../apps/flooop/floooplogo.gif" width="88" height="48" hspace="0" vspace="0"></td></tr>
+<tr><td bgcolor="#000000" align=center valign=center><applet archive="FlooopApplet.jar" code="FlooopApplet.class" width=480 height=360>
+<blink><b><font color="#FFFFFF">This browser does not support java. Sorry.</font></b></blink>
+</applet></td></tr></table>
+<p>Instructions: You are the circle (the Flooop). Your goal is to get to the top row by pushing blocks around until you get there.
+Use the arrow keys to move. See below for the behavior of the various pieces you will encounter.</p>
+<hr>
+
+<table border=2 cellpadding=3 cellspacing=3 width=300>
+<tr><td colspan=2 align=center valign=center>Pieces and their behavior.</td></tr>
+<tr><td colspan=2 align=center valign=center>In general you can push any piece with agreeing arrows. If you have a string of aligned and touching pieces and you push one end, the force is transferred through and the last one moves.</td></tr>
+
+<tr><td bgcolor="#000000" align=center valign=center><img src="circle.png" width="32" height="32" hspace="0" vspace="0"></td>
+<td align=center valign=center>This is you, the Flooop. See instructions.</td></tr>
+
+<tr><td bgcolor="#000000" align=center valign=center><img src="updown.png" width="32" height="32" hspace="0" vspace="0"></td>
+<td align=center valign=center>This is an Up-Down piece. You can push it up and down.</td></tr>
+
+<tr><td bgcolor="#000000" align=center valign=center><img src="leftright.png" width="32" height="32" hspace="0" vspace="0"></td>
+<td align=center valign=center>This is a Left-Right piece. You can push it left and right.</td></tr>
+
+<tr><td bgcolor="#000000" align=center valign=center><img src="fourway.png" width="32" height="32" hspace="0" vspace="0"></td>
+<td align=center valign=center>This is a Four Way piece. You can push it in all directions.</td></tr>
+
+<tr><td bgcolor="#000000" align=center valign=center><img src="redx.png" width="32" height="32" hspace="0" vspace="0"></td>
+<td align=center valign=center>This is a Red-X piece. It can never be moved and force cannot be sent through it.</td></tr>
+
+<tr><td bgcolor="#000000" align=center valign=center><img src="whitex.png" width="32" height="32" hspace="0" vspace="0"></td>
+<td align=center valign=center>This is a White-X piece. When pushed directly by the Flooop, it bahaves like a Red-X; but when pushed indirectly, it behaves just like a Four-Way.</td></tr>
+
+<tr><td bgcolor="#000000" align=center valign=center><img src="target.png" width="32" height="32" hspace="0" vspace="0"></td>
+<td align=center valign=center>This is a Target piece. When pushed indirectly, it behaves like a Four-Way, but if the Flooop tries to push it, the Flooop will move right through it.</td></tr>
+
+<tr><td bgcolor="#000000" align=center valign=center><img src="up.png" width="32" height="32" hspace="0" vspace="0">
+<img src="down.png" width="32" height="32" hspace="0" vspace="0">
+<img src="left.png" width="32" height="32" hspace="0" vspace="0">
+<img src="right.png" width="32" height="32" hspace="0" vspace="0"></td>
+<td align=center valign=center>These are the Arrow Pieces. When pushed from any direction, these pieces will switch places with whatever they point at. This could be any piece, even blank space.</td></tr>
+</table>
+
+</body>
+</html>
