@@ -226,7 +226,7 @@ class Animation {
     this.type = type;
     this.cb = cb;
     this.startTime = document.timeline.currentTime + delay;
-    this.MAX_DUR = 100;  // ms
+    this.MAX_DUR = 16.666 * 5;  // ms
   }
   quadEaseInBump(frac) {
     if (frac < 0.5) {
@@ -331,7 +331,7 @@ class Board {
       }
     }
     this.author = str.match(/\[(.*)\]/)[1];
-    console.log(this.author);
+    //console.log(this.author);
   }
   nextLevel() {
     if (this.level + 1 >= LEVELS.length) {
@@ -431,11 +431,7 @@ class Board {
           animation = this.animations[cell];
         }
         if (animation) {
-          if (animation.isDone(now)) {
-            delete this.animations[cell];
-          } else {
-            animation.adjustCtx(ctx, now, false);
-          }
+          animation.adjustCtx(ctx, now, false);
         }
         this.drawFunctions[this.board[cell]](ctx);
         ctx.restore();
@@ -448,7 +444,10 @@ class Board {
           //console.log(`draw circle: ${x}, ${y}`);
           ctx.restore();
         }
-        ctx.restore();
+        if (animation && animation.isDone(now)) {
+          delete this.animations[cell];
+        }
+      ctx.restore();
       }
     }
     ctx.restore();
@@ -464,7 +463,11 @@ class Board {
   }
   pushAnimation(cell, dir, circle, type, delay, cb) {
     if (this.animations.hasOwnProperty(cell)) {
-      console.log(`err: already animating this cell! ${cell}`);
+      console.log(`err: already animating this cell! ${cell}, ${circle}`);
+      Object.keys(this.animations).forEach(cell => {
+        const anim = this.animations[cell];
+        console.log(`anim: ${cell}, ${anim.circle}`)
+      });
       return;
     }
     this.animations[cell] = new Animation(dir, circle, type, delay, cb);
@@ -513,6 +516,7 @@ class Board {
             this.board[this.XYToCell(x, y)] = PieceTypes.Blank;
             this.board[this.XYToCell(x + dx, y + dy)] = truePiece;
           });
+        return;
       }
       if (nextPiece !== PieceTypes.RedX) {
         this.handlePieceMove(x + dx, y + dy, dx, dy, dir, depth + 1);
@@ -555,7 +559,9 @@ class Board {
     //console.log(`handle move`);
     if (Object.keys(this.animations).length) {
       // Animating. Do this move after animations end
-      this.queuedMoves.push(dir);
+      if (this.queuedMoves.length < 1)
+        this.queuedMoves.push(dir);
+      return;
     }
     let dx = 0;
     let dy = -1;
@@ -590,7 +596,7 @@ class Board {
     if (toPiece !== PieceTypes.WhiteX) {
       this.handlePieceMove(toX, toY, dx, dy, dir, 1);
     }
-    console.log(`pushing cicle bump anim`);
+    //console.log(`pushing cicle bump anim`);
     this.pushAnimation(curY * this.width + curX, dir, ANIM_CIRCLE.Circle, ANIM_TYPE.Bump, 0,
       () => {});
     return;
