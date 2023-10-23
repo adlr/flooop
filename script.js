@@ -167,18 +167,18 @@ function drawCircle(ctx) {
 }
 
 const LEVELS = [
-  "5555555055555556789ab502050000000000334050000555555500050000000000005050000000020000050000004023330050000555520000050000004020000050000000020010000000\n[Luke Shepard]",
-  "555555505555555000000502050000000000334050000555555500050000000000005050000000020000050000004023330050000555520000050000004020000050000000020010000000\n[Luke Shepard]",
-  "000000000000000000000000005555555000000005000005000000005200033333333333200000000000000200000000000000200000000000000200000000000000000000000010000000\n[Luke Shepard]",
-  "555555505555555000000500500003000000305000000000000305000b0000000080800b0000000005500400000000005540000005555755555755550000000000000000000000100000a0\n[John Blatz]",
-  "5555055555555550000600000000050000000000000050000000000000050a0555550000005000000030505005005205500005005005050055555505405000400000555005050555550001\n[Andy de los Reyes]",
-  "555555505055555000540064250000000500005250400045500005255500402000005200500002000005250500008000005200500552000006000500002000005000000000000015000000\n[Josh Paul]",
-  "5555555055555299005066666005000b050200000b5004005000000053300035000000050000666500000605550b307a00000090009b00700000000a000000000007000000000010079003\n[John Blatz]",
-  "55550055555555500056a0000400002820000008660002200000000055500000000200a0005003000033000900550000000000a0005000000000000005000000000008a057000017000555\n[John Blatz]",
-  "0000505555555554005060bb05b9a100500000035b870050000000005055500000000025000255000300000000000550000000000050005500000000050000055000000000444000000000\n[John Blatz]",
-  "555bbbb9bbbb555005bbbbbbbbb500005bbbbbbbbb500003bbbbbbbab300003bb89bbbbb300003bb55bbbba300003bbb7bbb7b300003666666666300000444444444000000000010000000\n[John Blatz]",
-  "5555055555555550000605300000000054a333000000000000053000000058b3333300100000333333300000000333a3330000000053733330000050055555555555550000000080000000\n[Andy de los Reyes]",
-  "55000000000005544444444444444a44444444444444a44444444444444a44444444444444a44444444444444a44444444444444a44444444444444a000000000000000550000010000055\n[John Blatz]",
+  // "5555555055555556789ab502050000000000334050000555555500050000000000005050000000020000050000004023330050000555520000050000004020000050000000020010000000\n[Luke Shepard]",
+  // "555555505555555000000502050000000000334050000555555500050000000000005050000000020000050000004023330050000555520000050000004020000050000000020010000000\n[Luke Shepard]",
+  // "000000000000000000000000005555555000000005000005000000005200033333333333200000000000000200000000000000200000000000000200000000000000000000000010000000\n[Luke Shepard]",
+  // "555555505555555000000500500003000000305000000000000305000b0000000080800b0000000005500400000000005540000005555755555755550000000000000000000000100000a0\n[John Blatz]",
+  // "5555055555555550000600000000050000000000000050000000000000050a0555550000005000000030505005005205500005005005050055555505405000400000555005050555550001\n[Andy de los Reyes]",
+  // "555555505055555000540064250000000500005250400045500005255500402000005200500002000005250500008000005200500552000006000500002000005000000000000015000000\n[Josh Paul]",
+  // "5555555055555299005066666005000b050200000b5004005000000053300035000000050000666500000605550b307a00000090009b00700000000a000000000007000000000010079003\n[John Blatz]",
+  // "55550055555555500056a0000400002820000008660002200000000055500000000200a0005003000033000900550000000000a0005000000000000005000000000008a057000017000555\n[John Blatz]",
+  // "0000505555555554005060bb05b9a100500000035b870050000000005055500000000025000255000300000000000550000000000050005500000000050000055000000000444000000000\n[John Blatz]",
+  // "555bbbb9bbbb555005bbbbbbbbb500005bbbbbbbbb500003bbbbbbbab300003bb89bbbbb300003bb55bbbba300003bbb7bbb7b300003666666666300000444444444000000000010000000\n[John Blatz]",
+  // "5555055555555550000605300000000054a333000000000000053000000058b3333300100000333333300000000333a3330000000053733330000050055555555555550000000080000000\n[Andy de los Reyes]",
+  // "55000000000005544444444444444a44444444444444a44444444444444a44444444444444a44444444444444a44444444444444a44444444444444a000000000000000550000010000055\n[John Blatz]",
   "5555a9879875555555589a8a7855555555987a9aa555555559aa988a55555555a889987555555557a9aaa7555555559a8889a55555555989898755555555989a787555555559aa1aa95555\n[John Blatz]"
 ];
 
@@ -205,14 +205,25 @@ const DIRECTION = {
   Left: 3
 }
 
+function oppositeDir(dir) {
+  return (dir + 2) % 4;
+}
+
 const ANIM_TYPE = {
   Move: 0,
   Bump: 1
 }
 
+const ANIM_CIRCLE = {
+  Piece: 0,
+  Circle: 1,
+  Both: 2
+}
+
 class Animation {
-  constructor(dir, type, delay, cb) {
+  constructor(dir, circle, type, delay, cb) {
     this.dir = dir;
+    this.circle = circle;
     this.type = type;
     this.cb = cb;
     this.startTime = document.timeline.currentTime + delay;
@@ -233,16 +244,21 @@ class Animation {
     }
   }
   getOffset(now) {  // ms
-    const duration = now - this.startTime;
+    let duration = now - this.startTime;
     if (duration < 0)
       return 0;
     const offset = 32;
     if (duration > this.MAX_DUR)
-      return offset;
+      duration = this.MAX_DUR;
     const fn = this.type === ANIM_TYPE.Move ? this.quadEaseInOut : this.quadEaseInBump;
     return offset * fn(duration / this.MAX_DUR);
   }
-  adjustCtx(ctx, now) {
+  adjustCtx(ctx, now, circle) {
+    if (this.circle === ANIM_CIRCLE.Circle && circle === false)
+      return;
+    if (this.circle === ANIM_CIRCLE.Piece && circle === true)
+      return;
+    //console.log(`adjust by ${this.getOffset(now)}`);
     switch(this.dir) {
       case DIRECTION.Up: ctx.translate(0, -this.getOffset(now)); break;
       case DIRECTION.Right: ctx.translate(this.getOffset(now), 0); break;
@@ -312,6 +328,14 @@ class Board {
     this.author = str.match(/\[(.*)\]/)[1];
     console.log(this.author);
   }
+  nextLevel() {
+    if (this.level + 1 >= LEVELS.length) {
+      console.log(`you beat the game`);
+      return;
+    }
+    this.loadLevel(this.level + 1);
+    draw(0);
+  }
   getCreditString() {
     let levelString = '' + (this.level + 1);
     switch(this.level + 1) {
@@ -369,7 +393,7 @@ class Board {
     if (animCells === null) {
       ctx.fillStyle = "white";
       ctx.font = "12px serif";
-      ctx.fillText(this.getCreditString(), 3, 14);
+      ctx.fillText(this.getCreditString(), 3, 13);
       //console.log(`draw credits, ${now}`);
     }
     ctx.save();
@@ -396,19 +420,28 @@ class Board {
         //console.log(`draw ${x}, ${y}`);
         ctx.save();
         ctx.translate(x * 32, y * 32);
-        if (animCells) {
-          if (this.animations.hasOwnProperty(cell)) {
-            if (this.animations[cell].isDone(now)) {
-              delete this.animations[cell];
-              // Maybe stop animating?
-            } else {
-              this.animations[cell].adjustCtx(ctx, now);
-            }
+        ctx.save();
+        let animation = null;
+        if (animCells && this.animations.hasOwnProperty(cell)) {
+          animation = this.animations[cell];
+        }
+        if (animation) {
+          if (animation.isDone(now)) {
+            delete this.animations[cell];
+          } else {
+            animation.adjustCtx(ctx, now, false);
           }
         }
         this.drawFunctions[this.board[cell]](ctx);
+        ctx.restore();
         if (this.circlePos[0] == x && this.circlePos[1] == y) {
+          ctx.save();
+          if (animation) {
+            animation.adjustCtx(ctx, now, true);
+          }
           drawCircle(ctx);
+          //console.log(`draw circle: ${x}, ${y}`);
+          ctx.restore();
         }
         ctx.restore();
       }
@@ -424,13 +457,17 @@ class Board {
     }
     ctx.restore();
   }
-  pushAnimation(cell, dir, type, delay, cb) {
+  pushAnimation(cell, dir, circle, type, delay, cb) {
     if (this.animations.hasOwnProperty(cell)) {
       console.log(`err: already animating this cell!`);
       return;
     }
-    this.animations[cell] = new Animation(dir, type, delay, cb);
+    this.animations[cell] = new Animation(dir, circle, type, delay, cb);
     requestAnimationFrame(animate);
+  }
+  delAnimation(x, y) {
+    const cell = this.XYToCell(x, y);
+    delete this.animations[cell];
   }
   cellsAffectedByAnimation() {
     const ret = {};
@@ -451,27 +488,62 @@ class Board {
     return y * this.width + x;
   }
   handlePieceMove(x, y, dx, dy, dir, depth) {
-    const piece = this.pieceAt(x, y);
+    let piece = this.pieceAt(x, y);
+    const truePiece = piece;
+    if (piece === PieceTypes.WhiteX || piece === PieceTypes.Target) {
+      // At this point, treat as four way
+      piece = PieceTypes.FourWay;
+    }
     if (piece === PieceTypes.UpDown || piece === PieceTypes.LeftRight || piece === PieceTypes.FourWay) {
       // Check for illegal moves
       if ((piece === PieceTypes.UpDown && (dir === DIRECTION.Left || dir === DIRECTION.Right)) ||
           (piece === PieceTypes.LeftRight && (dir === DIRECTION.Up || dir === DIRECTION.Down))) {
-        //this.pushAnimation(this.XYToCell(x, y), dir, ANIM_TYPE.Bump, depth * 500, () => {});
         return;
       }
       const nextPiece = this.pieceAt(x + dx, y + dy);
       if (nextPiece === PieceTypes.Blank) {
         // We can move
-        this.pushAnimation(this.XYToCell(x, y), dir, ANIM_TYPE.Move, depth * 33,
+        this.pushAnimation(this.XYToCell(x, y), dir, ANIM_CIRCLE.Piece, ANIM_TYPE.Move, depth * 33,
           () => {
             this.board[this.XYToCell(x, y)] = PieceTypes.Blank;
-            this.board[this.XYToCell(x + dx, y + dy)] = piece;
+            this.board[this.XYToCell(x + dx, y + dy)] = truePiece;
           });
       }
       if (nextPiece !== PieceTypes.RedX) {
         this.handlePieceMove(x + dx, y + dy, dx, dy, dir, depth + 1);
       }
-      this.pushAnimation(this.XYToCell(x, y), dir, ANIM_TYPE.Bump, depth * 33, () => {});
+      this.pushAnimation(this.XYToCell(x, y), dir, ANIM_CIRCLE.Piece, ANIM_TYPE.Bump, depth * 33, () => {});
+    }
+    if ([PieceTypes.Up, PieceTypes.Right, PieceTypes.Down, PieceTypes.Left].indexOf(piece) >= 0) {
+      switch (piece) {
+        case PieceTypes.Up: dx = 0; dy = -1; dir = DIRECTION.Up; break;
+        case PieceTypes.Right: dx = 1; dy = 0; dir = DIRECTION.Right; break;
+        case PieceTypes.Down: dx = 0; dy = 1; dir = DIRECTION.Down; break;
+        case PieceTypes.Left: dx = -1; dy = 0; dir = DIRECTION.Left; break;
+      }
+      if (this.pieceAt(x + dx, y + dy) === PieceTypes.RedX) {
+        // Can't swap, just bump
+        this.pushAnimation(this.XYToCell(x, y), dir, ANIM_CIRCLE.Piece, ANIM_TYPE.Bump, depth * 33, () => {});
+        return;
+      }
+      // Swap w/ other piece
+      // If other piece is animating, remove it
+      this.delAnimation(x + dx, y + dy);
+      const otherPiece = this.board[this.XYToCell(x + dx, y + dy)];
+      const otherHasCircle = this.circlePos[0] === x + dx && this.circlePos[1] === y + dy;
+      this.pushAnimation(this.XYToCell(x, y), dir, ANIM_CIRCLE.Piece, ANIM_TYPE.Move, depth * 33,
+      () => {
+        this.board[this.XYToCell(x, y)] = otherPiece;
+        this.board[this.XYToCell(x + dx, y + dy)] = piece;
+        if (otherHasCircle) {
+          this.circlePos[0] = x;
+          this.circlePos[1] = y;
+          if (this.circlePos[0] === 0) {
+            this.nextLevel();
+          }
+        }
+      });
+      this.pushAnimation(this.XYToCell(x + dx, y + dy), oppositeDir(dir), ANIM_CIRCLE.Both, ANIM_TYPE.Move, depth * 33, () => {});
     }
   }
   handleMove(dir) {
@@ -487,24 +559,30 @@ class Board {
     const curY = this.circlePos[1];
     const toX = curX + dx;
     const toY = curY + dy;
-    console.log(`${toX}, ${toY}`);
-    if (toX < 0 || toX >= this.width || toY < 0 || toY >= this.height) {
-      this.pushAnimation(curY * this.width + curX, dir, ANIM_TYPE.Bump, 0,
-        () => {});
-      return;
-    }
+    // console.log(`${toX}, ${toY}`);
+    // if (toX < 0 || toX >= this.width || toY < 0 || toY >= this.height) {
+    //   this.pushAnimation(curY * this.width + curX, dir, ANIM_TYPE.Bump, 0,
+    //     () => {});
+    //   return;
+    // }
     const toPiece = this.pieceAt(toX, toY);
-    console.log(`${toPiece}`);
+    //console.log(`${toPiece}`);
     if (toPiece === PieceTypes.Blank || toPiece === PieceTypes.Target) {
-      this.pushAnimation(curY * this.width + curX, dir, ANIM_TYPE.Move, 0,
+      this.pushAnimation(curY * this.width + curX, dir, ANIM_CIRCLE.Circle, ANIM_TYPE.Move, 0,
         () => {
           this.circlePos[0] = this.circlePos[0] + dx;
           this.circlePos[1] = this.circlePos[1] + dy;
+          if (this.circlePos[1] === 0) {
+            this.nextLevel();
+          }
         });
       return;
     }
-    this.handlePieceMove(toX, toY, dx, dy, dir, 1);
-    this.pushAnimation(curY * this.width + curX, dir, ANIM_TYPE.Bump, 0,
+    if (toPiece !== PieceTypes.WhiteX) {
+      this.handlePieceMove(toX, toY, dx, dy, dir, 1);
+    }
+    console.log(`pushing cicle bump anim`);
+    this.pushAnimation(curY * this.width + curX, dir, ANIM_CIRCLE.Circle, ANIM_TYPE.Bump, 0,
       () => {});
     return;
 }
