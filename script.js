@@ -87,7 +87,7 @@ function drawUpDown(ctx) {
 
 function drawLeftRight(ctx) {
   ctx.save();
-  ctx.fillStyle = "blue";
+  ctx.fillStyle = "#4444ff";
   ctx.beginPath();
   ctx.translate(16, 16);
   ctx.rotate(Math.PI/2);
@@ -610,17 +610,41 @@ const canvas = document.getElementById('canvas');
 
 let dpr = 1.0;
 
+let windowFullySized = false;
+
 function resizeCanvas() {
   dpr = window.devicePixelRatio || 1;
-    canvas.width = window.innerWidth * dpr;
-    canvas.height = window.innerHeight * dpr;
-    console.log(`DPI is ${dpr}, resizing to ${canvas.width} x ${canvas.height}`);
-    //animate(0);
-    draw(0);
+  const oldRatio = canvas.width / canvas.height;
+  canvas.width = canvas.clientWidth * dpr;
+  canvas.height = canvas.clientHeight * dpr;
+  // console.log(`Window size: ${window.innerWidth}, ${window.innerHeight}`);
+  // console.log(`Body size: ${document.body.width}, ${window.innerHeight}`);
+  // console.log(`DPI is ${dpr}, resizing to ${canvas.width} x ${canvas.height}`);
+  //animate(0);
+  //console.log(`${canvas.clientHeight} ==? ${window.innerHeight}`);
+  windowFullySized = canvas.clientHeight === window.innerHeight;
+  //checkTouchListeners();
+  draw(0);
+  const newRatio = canvas.width / canvas.height;
+  console.log(`${oldRatio} -> ${newRatio}`);
+  if (oldRatio <= 1 && newRatio > 1) {
+    console.log(`ENTER LANDSCAPE`);
+    handleRotation(true);
+  } else if (newRatio <= 1 && oldRatio > 1) {
+    console.log(`EXIT LANDSCAPE`);
+    handleRotation(false);
+  }
 }
 
+let scrollOffsetsZero = true;
+
+document.addEventListener("scroll", (event) => {
+  scrollOffsetsZero = window.scrollX === 0 && window.scrollY === 0;
+  // console.log(`scroll pos: ${window.scrollX}, ${window.scrollY}, ${window.innerHeight}`);
+});
+
+
 window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
 
 function draw(time) {
   // Get the size of the canvas in CSS pixels.
@@ -640,6 +664,7 @@ function draw(time) {
   // ctx.beginPath();
   // ctx.moveTo(0, 0); // Move to the starting point
   // ctx.lineTo(canvas.width, canvas.height);     // Draw a line to the ending point
+  //console.log(`canvas size: ${canvas.width}, ${canvas.height}`);
   // ctx.stroke();              // Render the line
 
   board.draw(ctx, time);
@@ -695,35 +720,197 @@ document.addEventListener("keydown", evt => {
     board.loadLevel(board.level);
     draw(0);
   }
+  if (evt.key === "s") {
+    board.nextLevel();
+    draw(0);
+  }
 });
 
 const touches = {};
 
-document.addEventListener("touchstart", evt => {
+let listeningForTouches = false;
+
+function checkTouchListeners() {
+  function touchstart(evt) {
+    for (let i = 0; i < evt.touches.length; i++) {
+      const touch = evt.touches[i];
+      touches[touch.identifier] = [touch.clientX, touch.clientY];
+      console.log(`start ${touch.identifier}`);
+    }
+  }
+  function touchmove(evt) {
+  }
+  function touchcancel(evt) {
+    for (let i = 0; i < evt.changedTouches.length; i++) {
+      console.log(`cancel ${evt.changedTouches[i].identifier}`);
+      delete touches[evt.changedTouches[i].identifier];
+    }
+  }
+  function touchend(evt) {
+    for (let i = 0; i < evt.changedTouches.length; i++) {
+      console.log(`end ${evt.changedTouches[i].identifier}`);
+      const touch = evt.changedTouches[i];
+      // console.log(`id: ${touch.identifier}`);
+      // console.log(`touches: ${JSON.stringify(touches)}`);
+      const dx = touch.clientX - touches[touch.identifier][0];
+      const dy = touch.clientY - touches[touch.identifier][1];
+
+      const THRESH = 50;
+      if (Math.abs(dx) > Math.abs(dy) * 2 && Math.abs(dx) > THRESH) {
+        board.handleMove(dx > 0 ? DIRECTION.Right : DIRECTION.Left);
+      } else if (Math.abs(dy) > Math.abs(dx) * 2 && Math.abs(dy) > THRESH) {
+        board.handleMove(dy > 0 ? DIRECTION.Down : DIRECTION.Up);
+      }
+
+      delete touches[evt.changedTouches[i].identifier];
+    }
+  }
+
+  if (windowFullySized && scrollOffsetsZero || true) {
+    if (listeningForTouches)
+      return;
+      listeningForTouches = true;
+    console.log(`Enable touch listeners`);
+    // Enable touch listeners
+    document.body.addEventListener("touchstart", touchstart, false);
+    document.body.addEventListener("touchmove", touchmove, false);
+    document.body.addEventListener("touchcancel", touchcancel, false);
+    document.body.addEventListener("touchend", touchend, false);
+    document.body.style.touchAction = "none";
+  } else {
+    if (!listeningForTouches)
+      return;
+      listeningForTouches = false;
+    console.log(`Disable touch listeners`);
+    // Disable touch listeners
+    document.body.removeEventListener("touchstart", touchstart, false);
+    document.body.removeEventListener("touchmove", touchmove, false);
+    document.body.removeEventListener("touchcancel", touchcancel, false);
+    document.body.removeEventListener("touchend", touchend, false);
+    document.body.style.touchAction = "auto";
+  }
+}
+
+function handleReloadClick(evt) {
+  console.log(`reload clicked`);
+  board.loadLevel(board.level);
+  draw(0);
+  evt.stopPropagation();
+}
+
+const reloadTouches = {};
+
+function handleReloadTouchstart(evt) {
   for (let i = 0; i < evt.touches.length; i++) {
     const touch = evt.touches[i];
-    touches[touch.identifier] = [touch.clientX, touch.clientY];
+    reloadTouches[touch.identifier] = [touch.clientX, touch.clientY];
+    console.log(`rstart ${touch.identifier}`);
   }
-}, false);
-//someElement.addEventListener("touchmove", process_touchmove, false);
-document.addEventListener("touchcancel", evt => {
-  for (let i = 0; i < evt.changedTouches.length; i++) {
-    delete touches[evt.changedTouches[i].identifier];
-  }
-}, false);
-document.addEventListener("touchend", evt => {
-  for (let i = 0; i < evt.changedTouches.length; i++) {
-    const touch = evt.changedTouches[i];
-    const dx = touch.clientX - touches[touch.identifier][0];
-    const dy = touch.clientY - touches[touch.identifier][1];
+  evt.stopPropagation();
+}
 
-    const THRESH = 50;
+function handleReloadTouchmove(evt) {
+  evt.stopPropagation();
+}
+
+function handleReloadTouchcancel(evt) {
+  for (let i = 0; i < evt.changedTouches.length; i++) {
+    console.log(`rcancel ${evt.changedTouches[i].identifier}`);
+    delete reloadTouches[evt.changedTouches[i].identifier];
+  }
+  evt.stopPropagation();
+}
+
+function handleReloadTouchend(evt) {
+  for (let i = 0; i < evt.changedTouches.length; i++) {
+    console.log(`end ${evt.changedTouches[i].identifier}`);
+    const touch = evt.changedTouches[i];
+    // console.log(`id: ${touch.identifier}`);
+    // console.log(`touches: ${JSON.stringify(touches)}`);
+    const dx = touch.clientX - reloadTouches[touch.identifier][0];
+    const dy = touch.clientY - reloadTouches[touch.identifier][1];
+
+    const THRESH = 150;
     if (Math.abs(dx) > Math.abs(dy) * 2 && Math.abs(dx) > THRESH) {
-      board.handleMove(dx > 0 ? DIRECTION.Right : DIRECTION.Left);
-    } else if (Math.abs(dy) > Math.abs(dx) * 2 && Math.abs(dy) > THRESH) {
-      board.handleMove(dy > 0 ? DIRECTION.Down : DIRECTION.Up);
+      if (dx > 0) {
+        //console.log(`next level`);
+        board.nextLevel();
+      }
     }
 
-    delete touches[evt.changedTouches[i].identifier];
+    delete reloadTouches[evt.changedTouches[i].identifier];
   }
+  evt.stopPropagation();
+}
+
+function handleFourwayClick(evt) {
+  console.log(`fourway clicked`);
+  const elt = document.getElementById('fourway');
+  const x = evt.clientX - elt.offsetLeft;
+  const y = evt.clientY - elt.offsetTop;
+  if (x > y) {
+    if (y > (elt.clientHeight - x)) {
+      board.handleMove(DIRECTION.Right);
+    } else {
+      board.handleMove(DIRECTION.Up);
+    }
+  } else {
+    if (y > (elt.clientHeight - x)) {
+      board.handleMove(DIRECTION.Down);
+    } else {
+      board.handleMove(DIRECTION.Left);
+    }
+  }
+  evt.stopPropagation();
+}
+
+function setControlsHandlers(enabled) {
+  if (enabled) {
+    console.log(`enable fourway`);
+    document.getElementById('reload').addEventListener('click', handleReloadClick, false);  
+    document.getElementById('fourway').addEventListener('click', handleFourwayClick, false);
+    document.getElementById('reload').addEventListener("touchstart", handleReloadTouchstart, false);
+    document.getElementById('reload').addEventListener("touchmove", handleReloadTouchmove, false);
+    document.getElementById('reload').addEventListener("touchcancel", handleReloadTouchcancel, false);
+    document.getElementById('reload').addEventListener("touchend", handleReloadTouchend, false);
+  } else {
+    console.log(`disable fourway`);
+    document.getElementById('reload').removeEventListener('click', handleReloadClick, false);  
+    document.getElementById('fourway').removeEventListener('click', handleFourwayClick, false);
+    document.getElementById('reload').removeEventListener("touchstart", handleReloadTouchstart, false);
+    document.getElementById('reload').removeEventListener("touchmove", handleReloadTouchmove, false);
+    document.getElementById('reload').removeEventListener("touchcancel", handleReloadTouchcancel, false);
+    document.getElementById('reload').removeEventListener("touchend", handleReloadTouchend, false);
+  }
+}
+setControlsHandlers(true);
+
+const CONTROLS = document.getElementById('controls');
+
+function getControlsOpacity() {
+  return parseFloat(window.getComputedStyle(CONTROLS).opacity);
+}
+
+function setControlsOpacity(opacity) {
+  CONTROLS.style.opacity = opacity;
+  setControlsHandlers(opacity > 0.01);
+}
+
+function handleRotation(enterLandscape) {
+  const opacity = getControlsOpacity();
+  if (enterLandscape && opacity > 0.99) {
+    setControlsOpacity(0.4);
+  } else if (!enterLandscape && opacity < 0.01) {
+    setControlsOpacity(0.4);
+  }
+}
+
+document.getElementById('controls').addEventListener('click', evt => {
+  const opacity = getControlsOpacity();
+  const newOpacity = (opacity === 0) ? 1 : (opacity === 1) ? 0.4 : 0;
+  //console.log(`opacity: ${opacity} -> ${newOpacity}`);
+  setControlsOpacity(newOpacity);
 }, false);
+
+resizeCanvas();
+checkTouchListeners();
