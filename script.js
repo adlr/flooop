@@ -623,15 +623,11 @@ function resizeCanvas() {
   //animate(0);
   //console.log(`${canvas.clientHeight} ==? ${window.innerHeight}`);
   windowFullySized = canvas.clientHeight === window.innerHeight;
-  //checkTouchListeners();
   draw(0);
   const newRatio = canvas.width / canvas.height;
-  console.log(`${oldRatio} -> ${newRatio}`);
   if (oldRatio <= 1 && newRatio > 1) {
-    console.log(`ENTER LANDSCAPE`);
     handleRotation(true);
   } else if (newRatio <= 1 && oldRatio > 1) {
-    console.log(`EXIT LANDSCAPE`);
     handleRotation(false);
   }
 }
@@ -706,29 +702,25 @@ document.addEventListener("keydown", evt => {
   }
   if (evt.key === "ArrowDown") {
     board.handleMove(DIRECTION.Down);
-  }
-  if (evt.key === "ArrowLeft") {
+  } else if (evt.key === "ArrowLeft") {
     board.handleMove(DIRECTION.Left);
-  }
-  if (evt.key === "ArrowUp") {
+  } else if (evt.key === "ArrowUp") {
     board.handleMove(DIRECTION.Up);
-  }
-  if (evt.key === "ArrowRight") {
+  } else if (evt.key === "ArrowRight") {
     board.handleMove(DIRECTION.Right);
-  }
-  if (evt.key === "r") {
+  } else if (evt.key === "r") {
     board.loadLevel(board.level);
     draw(0);
-  }
-  if (evt.key === "s") {
+  } else if (evt.key === "s") {
     board.nextLevel();
     draw(0);
+  } else {
+    return;
   }
+  document.getElementById('controls').style.opacity = 0;
 });
 
 const touches = {};
-
-let listeningForTouches = false;
 
 function checkTouchListeners() {
   function touchstart(evt) {
@@ -766,33 +758,15 @@ function checkTouchListeners() {
     }
   }
 
-  if (windowFullySized && scrollOffsetsZero || true) {
-    if (listeningForTouches)
-      return;
-      listeningForTouches = true;
-    console.log(`Enable touch listeners`);
-    // Enable touch listeners
-    document.body.addEventListener("touchstart", touchstart, false);
-    document.body.addEventListener("touchmove", touchmove, false);
-    document.body.addEventListener("touchcancel", touchcancel, false);
-    document.body.addEventListener("touchend", touchend, false);
-    document.body.style.touchAction = "none";
-  } else {
-    if (!listeningForTouches)
-      return;
-      listeningForTouches = false;
-    console.log(`Disable touch listeners`);
-    // Disable touch listeners
-    document.body.removeEventListener("touchstart", touchstart, false);
-    document.body.removeEventListener("touchmove", touchmove, false);
-    document.body.removeEventListener("touchcancel", touchcancel, false);
-    document.body.removeEventListener("touchend", touchend, false);
-    document.body.style.touchAction = "auto";
-  }
+  // Enable touch listeners
+  document.body.addEventListener("touchstart", touchstart, false);
+  document.body.addEventListener("touchmove", touchmove, false);
+  document.body.addEventListener("touchcancel", touchcancel, false);
+  document.body.addEventListener("touchend", touchend, false);
+  document.body.style.touchAction = "none";
 }
 
 function handleReloadClick(evt) {
-  console.log(`reload clicked`);
   board.loadLevel(board.level);
   draw(0);
   evt.stopPropagation();
@@ -804,7 +778,6 @@ function handleReloadTouchstart(evt) {
   for (let i = 0; i < evt.touches.length; i++) {
     const touch = evt.touches[i];
     reloadTouches[touch.identifier] = [touch.clientX, touch.clientY];
-    console.log(`rstart ${touch.identifier}`);
   }
   evt.stopPropagation();
 }
