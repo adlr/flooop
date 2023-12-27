@@ -547,7 +547,7 @@ class Board {
         if (otherHasCircle) {
           this.circlePos[0] = x;
           this.circlePos[1] = y;
-          if (this.circlePos[0] === 0) {
+          if (this.circlePos[1] === 0) {
             this.nextLevel();
           }
         }
