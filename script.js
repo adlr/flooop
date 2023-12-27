@@ -338,8 +338,11 @@ class Board {
       console.log(`you beat the game`);
       return;
     }
-    this.loadLevel(this.level + 1);
-    draw(0);
+    // This may be called within a draw() call, so queue this up to run after that exits.
+    setTimeout(() => {
+      this.loadLevel(this.level + 1);
+      draw(0);
+    }, 0);
   }
   getCreditString() {
     let levelString = '' + (this.level + 1);
@@ -643,44 +646,9 @@ document.addEventListener("scroll", (event) => {
 window.addEventListener('resize', resizeCanvas);
 
 function draw(time) {
-  // Get the size of the canvas in CSS pixels.
   var ctx = canvas.getContext('2d');
-  // Scale all drawing operations by the dpr, so you
-  // don't have to worry about the difference.
   ctx.save();
-  //ctx.scale(dpr, dpr);
-
-
-
-  // Your drawing code here
-  // Set the line color
-
-  // Draw the line
-  // ctx.strokeStyle = "red";
-  // ctx.beginPath();
-  // ctx.moveTo(0, 0); // Move to the starting point
-  // ctx.lineTo(canvas.width, canvas.height);     // Draw a line to the ending point
-  //console.log(`canvas size: ${canvas.width}, ${canvas.height}`);
-  // ctx.stroke();              // Render the line
-
   board.draw(ctx, time);
-
-  // draw spinner
-  // let x = Math.cos(time / 1000) * 32 + 32;
-  // let y = Math.sin(time / 1000) * 32 + 32;
-  // //console.log(`${time}, ${x}, ${y}`);
-  // ctx.beginPath();
-  // ctx.moveTo(x, y);
-  // ctx.lineTo(x, y + 20);
-  // ctx.stroke();
-  // drawRedX(ctx);
-  // ctx.translate(32, 0);
-  // drawCircle(ctx);
-
-  // ctx.beginPath();
-  // ctx.fillStyle = "white";
-  // ctx.fillText("192.", 20, 100);
-
   ctx.restore();
 }
 
@@ -689,7 +657,6 @@ function animate(time) {
     requestAnimationFrame(animate);
   } else {
     board.checkForQueuedMoves();
-    //  console.log(`stop animating`);
   }
   draw(time);
 }
